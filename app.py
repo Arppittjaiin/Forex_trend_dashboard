@@ -4,7 +4,7 @@ import json
 
 # Page configuration
 st.set_page_config(
-    page_title="Forex Analysis Dashboard",
+    page_title="Forex Analysis Terminal",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -12,30 +12,42 @@ st.set_page_config(
 # Custom CSS for the main shell
 st.markdown("""
 <style>
-    .stApp { background-color: #3D2B29; }
+    /* Bloomberg Terminal Style */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+    
+    .stApp { 
+        background-color: #000000; 
+        font-family: 'Roboto Mono', 'Courier New', monospace;
+    }
     header, footer, #MainMenu { visibility: hidden; }
     
     /* Style for Streamlit Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 20px;
-        background-color: transparent;
-        justify-content: center;
+        gap: 5px;
+        background-color: #000000;
+        justify-content: flex-start;
+        border-bottom: 2px solid #333;
     }
 
     .stTabs [data-baseweb="tab"] {
-        height: 50px;
+        height: 40px;
         white-space: pre-wrap;
-        background-color: rgba(230, 196, 160, 0.1);
-        border-radius: 10px 10px 0px 0px;
-        color: #E6C4A0;
+        background-color: #111;
+        border-radius: 0px;
+        color: #888;
+        font-family: 'Roboto Mono', monospace;
         font-weight: 700;
-        padding: 10px 30px;
-        border: none;
+        padding: 5px 20px;
+        border: 1px solid #333;
+        border-bottom: none;
     }
 
     .stTabs [aria-selected="true"] {
-        background-color: #E6C4A0 !important;
-        color: #3D2B29 !important;
+        background-color: #000000 !important;
+        color: #FFA500 !important;
+        border: 1px solid #FFA500 !important;
+        border-bottom: 2px solid #000 !important;
+        margin-bottom: -2px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -58,12 +70,12 @@ def get_board_html(title, storage_key):
     <html>
     <head>
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
         <style>
             body {{
-                font-family: 'Outfit', sans-serif;
-                background-color: #3D2B29;
-                color: white;
+                font-family: 'Roboto Mono', 'Courier New', monospace;
+                background-color: #000000;
+                color: #FFA500;
                 margin: 0;
                 padding: 10px 20px;
                 overflow: hidden;
@@ -74,91 +86,97 @@ def get_board_html(title, storage_key):
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 20px;
+                border-bottom: 1px solid #333;
+                padding-bottom: 10px;
             }}
 
             .title-box {{
-                background-color: #E6C4A0;
-                padding: 10px 40px;
-                border-radius: 50px;
-                color: #3D2B29;
-                font-size: 1.8rem;
-                font-weight: 800;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                background-color: #000;
+                padding: 5px 15px;
+                border: 1px solid #FFA500;
+                color: #FFA500;
+                font-size: 1.5rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
             }}
 
-            .btn-group {{ display: flex; gap: 12px; }}
+            .btn-group {{ display: flex; gap: 10px; }}
 
             .action-btn {{
-                padding: 8px 25px;
-                border-radius: 30px;
-                border: none;
-                font-weight: 800;
+                padding: 6px 15px;
+                background-color: #000;
+                border: 1px solid #555;
+                color: #CCC;
+                font-weight: 700;
                 cursor: pointer;
                 text-transform: uppercase;
-                font-family: 'Outfit', sans-serif;
+                font-family: 'Roboto Mono', monospace;
                 transition: all 0.2s;
+                font-size: 0.8rem;
             }}
 
-            .save-btn {{ background-color: #4CAF50; color: white; }}
-            .reset-btn {{ background-color: #FF5252; color: white; }}
-            .action-btn:hover {{ transform: translateY(-2px); filter: brightness(1.1); }}
+            .save-btn {{ border-color: #00FF00; color: #00FF00; }}
+            .reset-btn {{ border-color: #FF0000; color: #FF0000; }}
+            .save-btn:hover {{ background-color: #003300; }}
+            .reset-btn:hover {{ background-color: #330000; }}
 
             /* Bench */
-            .bench-label {{ color: #E6C4A0; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; }}
+            .bench-label {{ color: #888; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem; }}
             .bench-container {{
-                background: rgba(255, 255, 255, 0.04);
-                padding: 15px;
-                border-radius: 20px;
-                border: 2px dashed rgba(230, 196, 160, 0.2);
-                min-height: 90px;
-                margin-bottom: 25px;
+                background: #050505;
+                padding: 10px;
+                border: 1px solid #333;
+                min-height: 80px;
+                margin-bottom: 20px;
             }}
 
-            .currency-list {{ display: flex; flex-wrap: wrap; gap: 12px; min-height: 70px; }}
+            .currency-list {{ display: flex; flex-wrap: wrap; gap: 8px; min-height: 60px; }}
 
             /* Cards */
-            .currency-card {{ width: 105px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: grab; }}
-            .card-header {{ background-color: #E6C4A0; color: #3D2B29; text-align: center; font-weight: 800; padding: 4px; font-size: 0.9rem; }}
-            .card-body {{ height: 65px; display: flex; align-items: center; justify-content: center; }}
-            .card-body img {{ width: 100%; height: 100%; object-fit: cover; }}
+            .currency-card {{ width: 90px; background: #000; border: 1px solid #444; overflow: hidden; cursor: grab; display: flex; flex-direction: column; }}
+            .card-header {{ background-color: #111; color: #FFA500; text-align: center; font-weight: 700; padding: 4px; font-size: 0.9rem; border-bottom: 1px solid #444; }}
+            .card-body {{ height: 50px; display: flex; align-items: center; justify-content: center; background: #000; }}
+            .card-body img {{ width: 100%; height: 100%; object-fit: cover; filter: grayscale(20%) contrast(120%); }}
 
             /* Dashboard */
-            .board {{ display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; }}
+            .board {{ display: flex; justify-content: space-between; gap: 4px; margin-bottom: 15px; }}
             .column-wrapper {{ flex: 1; display: flex; flex-direction: column; }}
             .drop-zone {{
                 flex-grow: 1;
                 min-height: 350px;
                 display: flex;
                 flex-direction: column-reverse; /* Bottom-up stacking */
-                gap: 10px;
-                padding: 10px;
-                background: rgba(255, 255, 255, 0.02);
-                border-radius: 12px;
-                border: 1px solid rgba(255,255,255,0.03);
+                gap: 5px;
+                padding: 8px;
+                background: #050505;
+                border: 1px solid #333;
             }}
 
             /* Scale Bar */
-            .scale-bar {{ display: flex; width: 100%; height: 60px; border-radius: 15px; overflow: hidden; border: 3px solid #E6C4A0; }}
-            .scale-item {{ flex: 1; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; }}
-            .n3 {{ background: #D32F2F; }} .n2 {{ background: #F44336; }} .n1 {{ background: #FF8A80; }}
-            .zero {{ background: #AFB42B; }} .p1 {{ background: #8BC34A; }} .p2 {{ background: #4CAF50; }} .p3 {{ background: #2E7D32; }}
+            .scale-bar {{ display: flex; width: 100%; height: 40px; border: 1px solid #555; background: #111; gap: 1px; }}
+            .scale-item {{ flex: 1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700; color: #000; background: #333; }}
+            .n3 {{ background: #FF0000; color: #fff;}} .n2 {{ background: #CC0000; color: #fff; }} .n1 {{ background: #990000; color: #fff; }}
+            .zero {{ background: #888888; color: #fff; }} .p1 {{ background: #006600; color: #fff; }} .p2 {{ background: #009900; color: #fff; }} .p3 {{ background: #00FF00; color: #000; }}
 
-            .sortable-ghost {{ opacity: 0.2; }}
+            .sortable-ghost {{ opacity: 0.4; outline: 1px dashed #FFA500; }}
 
             /* Modal & Toast */
             .overlay {{
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000;
+                background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000;
             }}
-            .confirm-box {{ background: #E6C4A0; padding: 25px; border-radius: 20px; color: #3D2B29; text-align: center; max-width: 350px; }}
+            .confirm-box {{ background: #000; padding: 20px; border: 1px solid #FFA500; color: #FFA500; text-align: center; width: 300px; font-family: 'Roboto Mono', monospace; }}
             .confirm-actions {{ display: flex; gap: 10px; justify-content: center; margin-top: 15px; }}
-            .confirm-btn {{ padding: 8px 20px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; }}
-            .yes-btn {{ background: #3D2B29; color: white; }}
-            .no-btn {{ background: rgba(0,0,0,0.1); color: #3D2B29; }}
+            .confirm-btn {{ padding: 5px 15px; border: 1px solid #555; background: #111; color: #CCC; font-weight: 700; cursor: pointer; text-transform: uppercase; font-family: 'Roboto Mono', monospace; }}
+            .yes-btn {{ border-color: #FFA500; color: #FFA500; }}
+            .yes-btn:hover {{ background: #332000; }}
+            .no-btn:hover {{ background: #333; }}
             .toast {{
                 position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-                background: #4CAF50; color: white; padding: 10px 30px; border-radius: 50px;
-                font-weight: 800; display: none; z-index: 2000;
+                background: #000; color: #00FF00; padding: 10px 20px; border: 1px solid #00FF00;
+                font-weight: 700; display: none; z-index: 2000; font-family: 'Roboto Mono', monospace;
+                text-transform: uppercase; box-shadow: 0 0 10px rgba(0,255,0,0.2);
             }}
         </style>
     </head>
@@ -279,10 +297,10 @@ def get_board_html(title, storage_key):
     """
 
 # App Header
-st.markdown('<div style="text-align: center; margin-bottom: 20px;"><h1 style="color: #E6C4A0; font-family: Outfit; font-weight: 800; font-size: 3rem;">Forex Analysis Pro</h1></div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align: center; margin-bottom: 20px;"><h1 style="color: #FFA500; font-family: \'Roboto Mono\', monospace; font-weight: 700; font-size: 2.5rem; letter-spacing: 2px; text-transform: uppercase; border-bottom: 2px solid #333; padding-bottom: 10px;">TERMINAL FX // ANALYSIS</h1></div>', unsafe_allow_html=True)
 
 # Main Navigation Tabs
-tab_trend, tab_velocity = st.tabs(["📊 Trend Score", "🚀 Velocity Score"])
+tab_trend, tab_velocity = st.tabs(["[ TREND SCORE ]", "[ VELOCITY SCORE ]"])
 
 with tab_trend:
     components.html(get_board_html("Trend Score", "forex_trend_placements"), height=900)
